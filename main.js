@@ -140,7 +140,7 @@ async function loadModel(modelUri,scale, positionProperty) {
 
 async function loadHurricaneTest() {
 
-    var rawdata = await fetch('/data/ian_test.json');
+    var rawdata = await fetch('./data/ian_test.json');
     const hurricaneData = await rawdata.json();
 
     console.log(hurricaneData)
@@ -238,7 +238,7 @@ async function loadHurricaneTest() {
 
     console.log("test!")
 
-    await loadModel("/models/hurricane_larger_animated.glb", 800, positionProperty)
+    await loadModel("./models/hurricane_larger_animated.glb", 800, positionProperty)
 
     // viewer.clock.onTick.addEventListener(function (clock) {
     //     if (Cesium.JulianDate.greaterThan(clock.currentTime,stopTime)) { // Assuming you have a defined end date
