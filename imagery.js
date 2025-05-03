@@ -30,10 +30,10 @@ export default function getCesiumImagery() {
     imageryViewModels.push(new Cesium.ProviderViewModel({
         name: 'Positron',
         tooltip: 'CartoDB Positron basemap',
-        iconUrl: 'http://a.basemaps.cartocdn.com/light_all/5/15/12.png',
+        iconUrl: 'https://a.basemaps.cartocdn.com/light_all/5/15/12.png',
         creationFunction: function() {
             return new Cesium.UrlTemplateImageryProvider({
-                url: 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
                 credit: CartoAttribution,
                 minimumLevel: 0,
                 maximumLevel: 18
@@ -44,7 +44,7 @@ export default function getCesiumImagery() {
     imageryViewModels.push(new Cesium.ProviderViewModel({
         name: 'Dark Matter',
         tooltip: 'CartoDB Dark Matter basemap',
-        iconUrl: 'http://a.basemaps.cartocdn.com/rastertiles/dark_all/5/15/12.png',
+        iconUrl: 'https://a.basemaps.cartocdn.com/rastertiles/dark_all/5/15/12.png',
         creationFunction: function() {
             return new Cesium.UrlTemplateImageryProvider({
                 url: 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png',
@@ -58,7 +58,7 @@ export default function getCesiumImagery() {
     imageryViewModels.push(new Cesium.ProviderViewModel({
         name: 'Voyager',
         tooltip: 'CartoDB Voyager basemap',
-        iconUrl: 'http://a.basemaps.cartocdn.com/rastertiles/voyager_labels_under/5/15/12.png',
+        iconUrl: 'https://a.basemaps.cartocdn.com/rastertiles/voyager_labels_under/5/15/12.png',
         creationFunction: function() {
             return new Cesium.UrlTemplateImageryProvider({
                 url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}.png',
