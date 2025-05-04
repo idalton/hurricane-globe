@@ -1,0 +1,16 @@
+#toolbar button, #toolbar select {
+    font-size: 16px;
+    padding: 6px 10px;
+    background-color: #444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+}
+
+#toolbar button:hover, #toolbar select:hover {
+    background-color: #666;
+    cursor: pointer;
+}
+label {
+    font-family: Arial, Helvetica, sans-serif;
+}
