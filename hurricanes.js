@@ -7,8 +7,9 @@ var showAllTracks = true
 var trackSelected = false
 var viewer = null
 var currentTrackPoints = []
-const POINT_PIXEL_SIZE = 10
+const POINT_PIXEL_SIZE = 8
 const STORM_MODEL = "./models/hurricane_larger_animated_slow_1fps.glb"
+const STORM_MODEL_SCALE = 1000
 /* Setter functions for global variables needed for the main and this modele of javascript */
 
 export function setCurrentSeason(season){
@@ -48,7 +49,8 @@ export async function processData() {
     for (let season in hurdat2Data) {
         let current_season = hurricaneData[season]
         console.log(season, current_season)
-
+        let seasonStartDate = null
+        let seasonEndDate = null
         // let current_data = hurricaneModelTrackData[season]
         for (let hurricane in current_season ) {
             // current_data[hurricane] = {}
@@ -62,7 +64,17 @@ export async function processData() {
             current_season[hurricane].stormanimation = createStormAnimation(current_season[hurricane])
             // createHurricaneTrackLine(current_season[hurricane])
             // createHurricaneTrackPoints(current_season[hurricane])
+            if (!seasonStartDate) 
+            if (!seasonStartDate || Cesium.JulianDate.lessThan(current_season[hurricane].startTime, seasonStartDate)) {
+                seasonStartDate = current_season[hurricane].startTime
+            }
+            if (!seasonEndDate || Cesium.JulianDate.greaterThan(current_season[hurricane].stopTime, seasonEndDate)) {
+                seasonEndDate = current_season[hurricane].stopTime
+            }
+            
         }
+        current_season.startTime = seasonStartDate.clone()
+        current_season.stopTime = seasonEndDate.clone()
     }
 
     // If the mouse is over the billboard, change its scale and color
@@ -146,17 +158,26 @@ export function updateTracks() {
     for (let id in  hurricaneData[currentSeason]) {
         let hurricane = hurricaneData[currentSeason][id]
         console.log("updating for hurricane", hurricane)
-
-        viewer.scene.primitives.add(hurricane.trackline)
-        hurricane.pointsparent.show = true
-        currentTrackPoints.push(...hurricane.trackpoints)
-        // console.log("adding track points", hurricane.trackpoints)
-        // viewer.entities.add(hurricane.trackpoints)
-        // hurricane.trackpoints.forEach(point => {
-        //     // console.log(point)
-        //     viewer.entities.add(point);
-        // });
+        //TODO: fix
+        if (hurricane.id){
+            viewer.scene.primitives.add(hurricane.trackline)
+            hurricane.pointsparent.show = true
+            currentTrackPoints.push(...hurricane.trackpoints)
+        }
+        
     }
+        
+
+
+    let startTime = hurricaneData[currentSeason].startTime
+    let stopTime = hurricaneData[currentSeason].stopTime
+    viewer.clock.startTime = startTime.clone();
+    viewer.clock.stopTime = stopTime.clone();
+    viewer.clock.currentTime = startTime.clone();
+    viewer.timeline.zoomTo(startTime, stopTime);
+    viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP; // Loop at the end
+    viewer.clock.multiplier = 10000;
+    viewer.clock.shouldAnimate = true;
 }
 
 function clearSeason(season) {
@@ -273,7 +294,7 @@ function createHurricaneTrackPoints(hurricane){
                 color: color,
                 // outlineWidth: 1,
                 // disableDepthTestDistance: Number.POSITIVE_INFINITY, // always show the point over things
-                disableDepthTestDistance: 100000000
+                // disableDepthTestDistance: 100000000
             },
         }
         /* add the point to the viewers entities */ 
@@ -331,28 +352,28 @@ function createStormAnimation(hurricane) {
         positionProperty.addSample(time, position);
     })
 
-
-
-    // await loadModel(STORM_MODEL, 800, positionProperty)
+    const modelEntity = viewer.entities.add({
+        // availability: new Cesium.TimeIntervalCollection([ new Cesium.TimeInterval({ start: start, stop: stop }) ]),
+        availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({
+            start: startTime,
+            stop: stopTime
+        })]),
+        position: positionProperty,
+        model: {
+            uri: STORM_MODEL,
+            scale: STORM_MODEL_SCALE
+        },
+        // Automatically compute the orientation from the position.
+        orientation: new Cesium.VelocityOrientationProperty(positionProperty),
+        
+    });
+    hurricane.stormModelEntity = modelEntity
 }
 
 
 
-async function loadModel(modelUri,scale, positionProperty) {
-    const modelEntity = viewer.entities.add({
-    // availability: new Cesium.TimeIntervalCollection([ new Cesium.TimeInterval({ start: start, stop: stop }) ]),
-    availability: new Cesium.TimeIntervalCollection([ new Cesium.TimeInterval({ start: viewer.clock.startTime.clone() , stop: viewer.clock.stopTime.clone() }) ]),
-    position: positionProperty,
-    model: { 
-        uri: modelUri,
-        scale: scale 
-    },
-   // Automatically compute the orientation from the position.
-    orientation: new Cesium.VelocityOrientationProperty(positionProperty),    
-    // path: new Cesium.PathGraphics({ width: 3 }),
-    });
-
-    viewer.trackedEntity = modelEntity;
+function loadModel(modelUri,scale, positionProperty) {
+    
 }
 
 async function loadHurricaneTest() {
