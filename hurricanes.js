@@ -6,7 +6,9 @@ var currentHurricane = ""
 var showAllTracks = true
 var trackSelected = false
 var viewer = null
-
+var currentTrackPoints = []
+const POINT_PIXEL_SIZE = 10
+const STORM_MODEL = "./models/hurricane_larger_animated_slow_1fps.glb"
 /* Setter functions for global variables needed for the main and this modele of javascript */
 
 export function setCurrentSeason(season){
@@ -54,12 +56,53 @@ export async function processData() {
             // current_data
             // console.log(current_season[hurricane])
             
+            current_season[hurricane].id = hurricane
             current_season[hurricane].trackline = createHurricaneTrackLine(current_season[hurricane])
             current_season[hurricane].trackpoints = createHurricaneTrackPoints(current_season[hurricane])
+            current_season[hurricane].stormanimation = createStormAnimation(current_season[hurricane])
             // createHurricaneTrackLine(current_season[hurricane])
             // createHurricaneTrackPoints(current_season[hurricane])
         }
     }
+
+    // If the mouse is over the billboard, change its scale and color
+    /****  an much more complicated than it should be mouse over function ****/
+
+    /* keeps track of previous hovered entities/points */
+    let previousentity = null
+
+    let handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+    handler.setInputAction(function (movement) {
+        /* pick an object that is underneath the mouse */
+        const pickedObject = viewer.scene.pick(movement.endPosition);
+        let pointfound = false
+        /* is the object registered with cesium */
+        if (Cesium.defined(pickedObject)) {
+            /* iterate through all the currently displayed track points */
+            currentTrackPoints.forEach(entity => {
+                /* check if the picked object matches any of our point entities */
+                if (pickedObject.id === entity) {
+                    pointfound = true
+                    /* if we found one and we found another one before, reset that one*/
+                    if (previousentity) previousentity.point.pixelSize = POINT_PIXEL_SIZE
+                    /* make hovered over one bigger */ 
+                    entity.point.pixelSize = POINT_PIXEL_SIZE * 2
+                    /* save it for later */
+                    previousentity = entity
+                }
+            })
+            /* if we found an object but was not a point entity, reset our previous */
+            if (!pointfound && previousentity) {
+                previousentity.point.pixelSize = POINT_PIXEL_SIZE
+                previousentity = null
+            
+            }
+        /* if we didnt find any object, reset our previous */
+        } else if (previousentity) {
+            previousentity.point.pixelSize = POINT_PIXEL_SIZE
+            previousentity = null
+        }
+    }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
     updateSeasonSelector(Object.keys(hurricaneData))
 }
@@ -98,19 +141,17 @@ export function updateHurricaneSelectorOptions() {
 export function updateTracks() {
     console.log ("Updating displayed tracks for season ", currentSeason)
     // viewer.scene.primitives.removeAll()
-    removeSeason(previousSeason)
+    clearSeason(previousSeason)
 
     for (let id in  hurricaneData[currentSeason]) {
         let hurricane = hurricaneData[currentSeason][id]
         console.log("updating for hurricane", hurricane)
-        
-        
-        
+
         viewer.scene.primitives.add(hurricane.trackline)
-        
-        console.log("adding track points", hurricane.trackpoints)
-        // viewer.entities.add(hurricane.trackpoints)
         hurricane.pointsparent.show = true
+        currentTrackPoints.push(...hurricane.trackpoints)
+        // console.log("adding track points", hurricane.trackpoints)
+        // viewer.entities.add(hurricane.trackpoints)
         // hurricane.trackpoints.forEach(point => {
         //     // console.log(point)
         //     viewer.entities.add(point);
@@ -118,19 +159,57 @@ export function updateTracks() {
     }
 }
 
-function removeSeason(season){
+function clearSeason(season) {
     console.log("removing season from display: ", season)
     if (season == "") return
+
+    currentTrackPoints = []
+
     console.log(hurricaneData[season])
+    /* for each storm id get the storm and perform operations to clear its items on the screen */
     for (let id in hurricaneData[season]) {
         let storm = hurricaneData[season][id]
         
+        /* the point entities are assigned a parent that can be conviently turned off */
         storm.pointsparent.show = false
+        /* the tracklines are cesium primitives which need to be manually removed */
         viewer.scene.primitives.remove(storm.trackline)
     }
 }
 
 
+
+
+// this._candidateLinePrimitive = this.scene.primitives.add(
+//     new Cesium.Primitive({
+//       geometryInstances: new Cesium.GeometryInstance({
+//         geometry: new Cesium.PolylineGeometry({
+//           positions: this._candidateLinePositions,
+//           width: this.defaultLineWidth,
+//           vertexFormat: Cesium.PolylineMaterialAppearance.VERTEX_FORMAT
+//         })
+//       }),
+//       appearance: new Cesium.PolylineMaterialAppearance({
+//         material: new Cesium.Material({
+//           fabric: {
+//             type: "PolylineDash",
+//             uniforms: {
+//               color: (() => {
+//                 let c = this.lineMaterial.color.getValue();
+//                 return new Cesium.Color(c.red, c.green, c.blue, 1.0);
+//               })()
+//             }
+//           }
+//         }),
+//         renderState: {
+//           depthTest: {
+//             enabled: false  // shut off depth test
+//           }
+//         }
+//       }),
+//       asynchronous: false   // block or not
+//     })
+//   );
 
 function createHurricaneTrackLine(hurricane) {
     console.log("creating a trackline for hurricane: ", hurricane)
@@ -145,6 +224,8 @@ function createHurricaneTrackLine(hurricane) {
         
     });
 
+    var appearance = new Cesium.PolylineColorAppearance()
+    // appearance.renderState.depthTest.enabled = false 
     var trackline = new Cesium.Primitive({
         geometryInstances: new Cesium.GeometryInstance({
             id: hurricane.name + "track",
@@ -154,9 +235,11 @@ function createHurricaneTrackLine(hurricane) {
                 vertexFormat: Cesium.PolylineColorAppearance.VERTEX_FORMAT,
                 colors: colors,
                 colorsPerVertex: true,
+                
             }),
         }),
-        appearance: new Cesium.PolylineColorAppearance(),
+        // appearance: new Cesium.PolylineColorAppearance(),
+        appearance: appearance,
     });
 
     return trackline
@@ -165,7 +248,7 @@ function createHurricaneTrackLine(hurricane) {
 
 function createHurricaneTrackPoints(hurricane){
     console.log("creating trackpoints for hurricane: ", hurricane)
-    
+
     const parent = new Cesium.Entity({
         id: "parentId",
         show : false
@@ -177,27 +260,81 @@ function createHurricaneTrackPoints(hurricane){
     hurricane.entries.forEach(entry =>  {
         const position = Cesium.Cartesian3.fromDegrees(entry.lon, entry.lat);
         const color = getCategoryColorMapping(entry.category)
+        var str = hurricane.id +" - " + hurricane.name
+        console.log(str)
         var point = {
-            description: `Index ${entry.index}`,
+            name: str,
+            description: getStormEntryDescription(entry),
             position: position,
             parent: parent,
+            viewFrom: new Cesium.Cartesian3(0,0,100000),
             point: {
-                pixelSize: 8,
-                color: color
+                pixelSize: 10,
+                color: color,
+                // outlineWidth: 1,
+                // disableDepthTestDistance: Number.POSITIVE_INFINITY, // always show the point over things
+                disableDepthTestDistance: 100000000
             },
         }
         /* add the point to the viewers entities */ 
-        viewer.entities.add(point)
+        var pointentity =  viewer.entities.add(point)
         /* save the point object for later */
-        trackpoints.push (point);  
+        
+        // trackpoints.push (point);  
+        trackpoints.push (pointentity);  
     });
 
+    function getStormEntryDescription(entry) {
+        const date = new Date(entry.datetime);
+        return `
+            <table class="storm-entry-description" border="1" cellpadding="4" cellspacing="0">
+                <tr>
+                    <th style="text-align: left;">Date</th>
+                    <td>${date.toUTCString()}</td>
+                </tr>
+                <tr>
+                    <th>Pressure</th>
+                    <td>${entry.pressure} mb</td>
+                </tr>
+            </table>
+        `;
+    }
     
+
+
 
     hurricane.pointsparent = parent
     return trackpoints
 }
 
+
+function createStormAnimation(hurricane) {
+    console.log("creating storm animation for hurricane: ", hurricane)
+    // The SampledPositionedProperty stores the position and timestamp for each point along the track.
+    const positionProperty = new Cesium.SampledPositionProperty();
+    var entries = hurricane.entries
+
+    const startIndex = entries[0]
+    const endIndex = entries[entries.length - 1]
+
+    const startTime = Cesium.JulianDate.fromIso8601(startIndex.datetime);
+    const stopTime = Cesium.JulianDate.fromIso8601(endIndex.datetime);
+    hurricane.startTime = startTime
+    hurricane.stopTime = stopTime
+
+    entries.forEach( entry => {
+        // create the time and position for this hurricane data entry.
+        const time = Cesium.JulianDate.fromIso8601(entry.datetime);
+        const position = Cesium.Cartesian3.fromDegrees(entry.lon, entry.lat);
+
+        // add the time and position to the sampled position property so it can be animated.
+        positionProperty.addSample(time, position);
+    })
+
+
+
+    // await loadModel(STORM_MODEL, 800, positionProperty)
+}
 
 
 

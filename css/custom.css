@@ -14,3 +14,15 @@
 label {
     font-family: Arial, Helvetica, sans-serif;
 }
+
+.cesium-infoBox-title {
+    font-size: 20px;
+}
+
+.cesium-infoBox-description {
+    font-size: 16px;
+}
+
+table.storm-entry-description th {
+    text-align: left;
+}

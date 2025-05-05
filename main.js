@@ -29,7 +29,6 @@ const viewer = new Cesium.Viewer('cesiumContainer', {
     selectedImageryProviderViewModel: imageryViewModels[1],
     animation: true,
     timeline: true,
-    infoBox: false,
     geocoder: false, //TODO: fix geocoder
     // geocoder: new OpenStreetMapNominatimGeocoder(),
     // selectionIndicator: false,
