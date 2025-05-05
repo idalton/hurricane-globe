@@ -132,7 +132,7 @@ async function polylineExperiments() {
 }
 
 // var posprop = []
-polylineExperiments();
+// polylineExperiments();
 
 /*********************** Primary data load kickoff function *************************************/
 setViewer(viewer)
@@ -151,7 +151,7 @@ function onSelectSeason(season) {
 
 function onSelectHurricane(name) {
     console.log("Selected hurricane:", name);
-
+    setCurrentHurricane(name)
     // loadHurricaneData(name);
 }
 

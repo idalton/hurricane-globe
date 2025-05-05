@@ -15,34 +15,34 @@
 <body>
   <div id="cesiumContainer" style="position: absolute; top: 0; left: 0; border: none; width: 100%; height: 100%;"></div>
 
-  <div id="toolbar" style="position: absolute; top: 0; left: 0; width: fit-content; background: rgba(42, 42, 42, 0.8); padding: 10px; z-index: 1; display: flex; flex-direction: column; gap: 10px;">
+  <div id="toolbar" style="position: absolute; top: 0; left: 0; width: fit-content; background: rgba(42, 42, 42, 0.9); padding: 10px; z-index: 1; display: flex; flex-direction: column; gap: 10px;">
 
     <div style="display: flex; gap: 10px; align-items: center;">
       <!-- <label for="seasonSelector" style="color: white;">Select Hurricane Season:</label> -->
       <select id="hurricaneSeasonSelector" onchange="onSelectSeason(this.value)">
         <option value="">-- Select Season --</option>
-        <option value="2017">2017</option>
-        <option value="2018">2018</option>
-        <option value="2019">2019</option>
+        <!-- Options will be populated when all the data loads -->
       </select>
   
       <!-- <label for="hurricaneSelector" style="color: white;">Select Hurricane:</label> -->
       <select id="hurricaneSelector" onchange="onSelectHurricane(this.value)">
         <option value="">-- Select Hurricane --</option>
-        <!-- Options will populated dynamically when a season is selected -->
+        <!-- Options will be populated dynamically when a season is selected -->
       </select>
     </div>
+
+    <div id="summary-box" style="margin-top: 20px; color: #edffff"></div>
   
-    <div style="display: flex; gap: 20px; align-items: center;">
+    <!-- <div style="display: flex; gap: 20px; align-items: center;">
       <label style="color: white;">
         <input type="checkbox" id="showAllTracks" checked onchange="toggleShowAllTracks(this.checked)">
         Show All Season Tracks
-      </label>
+      </label> -->
   
-      <label style="color: white;">
+      <!-- <label style="color: white;">
         <input type="checkbox" id="trackSelectedHurricane" onchange="toggleTrackSelected(this.checked)">
         Track Selected Hurricane
-      </label>
+      </label> -->
     </div>
   </div>
   
