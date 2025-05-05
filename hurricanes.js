@@ -154,8 +154,12 @@ export function updateHurricaneSelectorOptions() {
     }
 
     const seasonSummary = document.getElementById("summary-box");
-    seasonSummary.innerHTML = hurricaneData[currentSeason].summary;
-
+    if (currentSeason == ""){
+        seasonSummary.innerHTML = "";    
+    } else {
+        seasonSummary.innerHTML = hurricaneData[currentSeason].summary;
+    }
+    viewer.clock.shouldAnimate = false;
 }
 
 
@@ -166,6 +170,7 @@ export function updateTracks(selectedHurricaneId) {
     console.log ("Updating displayed tracks for season ", currentSeason)
     // viewer.scene.primitives.removeAll()
     clearSeason(previousSeason)
+    if(currentSeason == "") return
     let pointparent = null
     for (let id in  hurricaneData[currentSeason]) {
         let hurricane = hurricaneData[currentSeason][id]
@@ -185,6 +190,7 @@ export function updateTracks(selectedHurricaneId) {
                     hurricane.pointsparent.show = true
                     currentTrackPoints.push(...hurricane.trackpoints)
                     hurricane.stormModelEntity.show = true
+                    viewer.selectedEntity = hurricane.stormModelEntity
                 } else {
                     // reduceTrackOpacity(hurricane.trackline)
                     viewer.scene.primitives.add(hurricane.trackline_low_opacity)
@@ -223,13 +229,14 @@ export function updateTracks(selectedHurricaneId) {
         
     }
 
-    if (selectedHurricaneId != "") {
+    // if (selectedHurricaneId != "") {
+    //     viewer.selectedEntity
         // viewer.scene.camera.flyTo(viewer.entities)
-        console.log("flying to entities")
-        viewer.flyTo( viewer.entities )
+        // console.log("flying to entities")
+        // viewer.flyTo( viewer.entities )
     //     // console.log(pointparent)
     //     // console.log(Cesium.DataSourceDisplay.getBoundingSphere(pointparent)) 
-    }
+    // }
     
 }
 
@@ -245,6 +252,11 @@ function clearSeason(season) {
 
     currentTrackPoints = []
     currentHurricaneId = ""
+
+    if (currentSeason == "") {
+        const seasonSummary = document.getElementById("summary-box");
+        seasonSummary.innerHTML = ""
+    }
 
     console.log(hurricaneData[season])
     /* for each storm id get the storm and perform operations to clear its items on the screen */

@@ -30,3 +30,13 @@ label {
 table.storm-entry-description th {
     text-align: left;
 }
+
+.legend-color {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 6px;
+    margin-bottom: 2px;
+    vertical-align: middle;
+    border-radius: 4px;
+}
