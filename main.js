@@ -145,8 +145,6 @@ await processData()
 function onSelectSeason(season) {
     console.log("Selected season:", season);
     setCurrentSeason(season)
-    updateHurricaneSelectorOptions()
-    updateTracks()
     
     // Load season track data into Cesium
     // loadSeasonTracks(season);

@@ -1,6 +1,7 @@
 
 var hurricaneData = {}
 var currentSeason = ""
+var previousSeason = ""
 var currentHurricane = ""
 var showAllTracks = true
 var trackSelected = false
@@ -8,12 +9,14 @@ var viewer = null
 
 /* Setter functions for global variables needed for the main and this modele of javascript */
 
-export function setCurrentSeason(show){
-    currentSeason = show
-    //update
+export function setCurrentSeason(season){
+    previousSeason = currentSeason
+    currentSeason = season
+    updateHurricaneSelectorOptions()
+    updateTracks()
 }
-export function setCurrentHurricane(show){
-    currentHurricane = show
+export function setCurrentHurricane(hurricane){
+    currentHurricane = hurricane
     // update
 }
 
@@ -50,7 +53,11 @@ export async function processData() {
             // console.log(hurricane)
             // current_data
             // console.log(current_season[hurricane])
-            current_season[hurricane].tracklines = createHurricaneTrackLines(current_season[hurricane])
+            
+            current_season[hurricane].trackline = createHurricaneTrackLine(current_season[hurricane])
+            current_season[hurricane].trackpoints = createHurricaneTrackPoints(current_season[hurricane])
+            // createHurricaneTrackLine(current_season[hurricane])
+            // createHurricaneTrackPoints(current_season[hurricane])
         }
     }
 
@@ -69,18 +76,17 @@ export function updateSeasonSelector(seasonlist) {
 }
 
 export function updateHurricaneSelectorOptions() {
-    let season = currentSeason
-    console.log("Updating Hurricane Selector Options for season:", season);
+    console.log("Updating Hurricane Selector Options for season:", currentSeason);
     const hurricaneSelector = document.getElementById("hurricaneSelector");
     /* reset the HTML of the selector */
     hurricaneSelector.innerHTML = '<option value="">-- Select Hurricane --</option>';
 
-    // console.log(hurricaneData[season])
+    // console.log(hurricaneData[currentSeason])
     /* for each storm add the storm designator and name to the selector list */
-    for (let id in  hurricaneData[season]) {
+    for (let id in  hurricaneData[currentSeason]) {
         const option = document.createElement("option");
         option.value = id;
-        option.textContent = id + " : " + hurricaneData[season][id].name;
+        option.textContent = id + " : " + hurricaneData[currentSeason][id].name;
         hurricaneSelector.appendChild(option);
     }
 }
@@ -91,21 +97,43 @@ export function updateHurricaneSelectorOptions() {
 
 export function updateTracks() {
     console.log ("Updating displayed tracks for season ", currentSeason)
-    viewer.scene.primitives.removeAll()
-    let season  = hurricaneData[currentSeason] 
+    // viewer.scene.primitives.removeAll()
+    removeSeason(previousSeason)
+
     for (let id in  hurricaneData[currentSeason]) {
-        let hurricane = season[id]
-        console.log(hurricane)
-        viewer.scene.primitives.add(hurricane.tracklines)
+        let hurricane = hurricaneData[currentSeason][id]
+        console.log("updating for hurricane", hurricane)
+        
+        
+        
+        viewer.scene.primitives.add(hurricane.trackline)
+        
+        console.log("adding track points", hurricane.trackpoints)
+        // viewer.entities.add(hurricane.trackpoints)
+        hurricane.pointsparent.show = true
+        // hurricane.trackpoints.forEach(point => {
+        //     // console.log(point)
+        //     viewer.entities.add(point);
+        // });
+    }
+}
+
+function removeSeason(season){
+    console.log("removing season from display: ", season)
+    if (season == "") return
+    console.log(hurricaneData[season])
+    for (let id in hurricaneData[season]) {
+        let storm = hurricaneData[season][id]
+        
+        storm.pointsparent.show = false
+        viewer.scene.primitives.remove(storm.trackline)
     }
 }
 
 
 
-
-
-function createHurricaneTrackLines(hurricane) {
-    console.log("creating tracklines for hurricane: ", hurricane)
+function createHurricaneTrackLine(hurricane) {
+    console.log("creating a trackline for hurricane: ", hurricane)
     var positions = []
     var colors = []
     // console.log("Object entries:", Object.entries(hurricane.entries) )
@@ -117,7 +145,7 @@ function createHurricaneTrackLines(hurricane) {
         
     });
 
-    var tracklines = new Cesium.Primitive({
+    var trackline = new Cesium.Primitive({
         geometryInstances: new Cesium.GeometryInstance({
             id: hurricane.name + "track",
             geometry: new Cesium.PolylineGeometry({
@@ -131,8 +159,46 @@ function createHurricaneTrackLines(hurricane) {
         appearance: new Cesium.PolylineColorAppearance(),
     });
 
-    return tracklines
+    return trackline
 }
+
+
+function createHurricaneTrackPoints(hurricane){
+    console.log("creating trackpoints for hurricane: ", hurricane)
+    
+    const parent = new Cesium.Entity({
+        id: "parentId",
+        show : false
+    });
+
+
+
+    const trackpoints = []
+    hurricane.entries.forEach(entry =>  {
+        const position = Cesium.Cartesian3.fromDegrees(entry.lon, entry.lat);
+        const color = getCategoryColorMapping(entry.category)
+        var point = {
+            description: `Index ${entry.index}`,
+            position: position,
+            parent: parent,
+            point: {
+                pixelSize: 8,
+                color: color
+            },
+        }
+        /* add the point to the viewers entities */ 
+        viewer.entities.add(point)
+        /* save the point object for later */
+        trackpoints.push (point);  
+    });
+
+    
+
+    hurricane.pointsparent = parent
+    return trackpoints
+}
+
+
 
 
 async function loadModel(modelUri,scale, positionProperty) {
@@ -151,8 +217,6 @@ async function loadModel(modelUri,scale, positionProperty) {
 
     viewer.trackedEntity = modelEntity;
 }
-
-
 
 async function loadHurricaneTest() {
 
@@ -283,7 +347,7 @@ const categoryColorMappingStandard = {
 }
 
 /* this color mapping is taken from the wikipedia page for the saffir-simpson scale */
-/* less colorful but simpler and probably better for colorblind individuals */
+/* less colorful but simpler and probably better */
 const categoryColorMappingWikipedia = {
     "-1":Cesium.Color.fromCssColorString("#6EC1EA"),
     "0": Cesium.Color.fromCssColorString("#4DFFFF"),
