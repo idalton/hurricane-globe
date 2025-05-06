@@ -26,7 +26,7 @@ Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
 /* Initialize the viewer */
 const viewer = new Cesium.Viewer('cesiumContainer', {
     imageryProviderViewModels: imageryViewModels,
-    selectedImageryProviderViewModel: imageryViewModels[1],
+    selectedImageryProviderViewModel: imageryViewModels[0],
     animation: true,
     timeline: true,
     geocoder: false, //TODO: fix geocoder

@@ -12,7 +12,7 @@ const STORM_MODEL = "./models/hurricane_larger_animated_slow_1fps.glb"
 const STORM_MODEL_SCALE = 1000
 const STORM_TRACK_REDUCED_OPACITY = .2
 const CLOCK_SPEED = 8000
-const DATA_FILE = "data/temp.json"
+const DATA_FILE = "data/all_seasons.json"
 /* Setter functions for global variables needed for the main and this modele of javascript */
 
 export function setCurrentSeason(season){
@@ -127,7 +127,7 @@ export async function processData() {
 
 export function updateSeasonSelector(seasonlist) {
     const seasondropdown = document.getElementById("hurricaneSeasonSelector")
-
+    seasonlist.reverse()
     for (let i = 0; i < seasonlist.length ; ++i) {
         const option = document.createElement("option");
         option.value = seasonlist[i];
@@ -355,12 +355,24 @@ function createHurricaneTrackPoints(hurricane){
         return `
             <table class="storm-entry-description" border="1" cellpadding="4" cellspacing="0">
                 <tr>
-                    <th style="text-align: left;">Date</th>
+                    <th>Date</th>
                     <td>${date.toUTCString()}</td>
                 </tr>
                 <tr>
                     <th>Pressure</th>
                     <td>${entry.pressure} mb</td>
+                </tr>
+                <tr>
+                    <th>Wind speed</th>
+                    <td>${entry.wind} kt</td>
+                </tr>
+                <tr>
+                    <th>Category</th>
+                    <td>${entry.category}</td>
+                </tr>
+                <tr>
+                    <th>Storm type</th>
+                    <td>${entry.status}</td>
                 </tr>
             </table>
         `;
